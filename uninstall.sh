@@ -1,18 +1,18 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-CLI_NAME="trace-pack"
+CLI_NAME="forge-pack"
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 log() {
-  printf '[trace uninstall] %s\n' "$1"
+  printf '[forge uninstall] %s\n' "$1"
 }
 
 remove_wrapper() {
   local candidates=()
 
-  if [[ -n "${TRACE_BIN_DIR:-}" ]]; then
-    candidates+=("$TRACE_BIN_DIR")
+  if [[ -n "${FORGE_BIN_DIR:-}" ]]; then
+    candidates+=("$FORGE_BIN_DIR")
   fi
 
   candidates+=("/usr/local/bin" "/opt/homebrew/bin" "$HOME/.local/bin" "$HOME/bin")

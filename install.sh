@@ -1,17 +1,17 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-CLI_NAME="trace-pack"
+CLI_NAME="forge-pack"
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-INSTALL_DIR="${TRACE_PACK_HOME:-$HOME/.trace-pack}"
-REPO_URL="${TRACE_REPO_URL:-}"
+INSTALL_DIR="${FORGE_PACK_HOME:-$HOME/.forge-pack}"
+REPO_URL="${FORGE_REPO_URL:-}"
 
 log() {
-  printf '[trace install] %s\n' "$1"
+  printf '[forge install] %s\n' "$1"
 }
 
 fail() {
-  printf '[trace install] ERROR: %s\n' "$1" >&2
+  printf '[forge install] ERROR: %s\n' "$1" >&2
   exit 1
 }
 
@@ -22,8 +22,8 @@ has_cmd() {
 pick_bin_dir() {
   local candidates=()
 
-  if [[ -n "${TRACE_BIN_DIR:-}" ]]; then
-    candidates+=("$TRACE_BIN_DIR")
+  if [[ -n "${FORGE_BIN_DIR:-}" ]]; then
+    candidates+=("$FORGE_BIN_DIR")
   fi
 
   candidates+=("/usr/local/bin" "/opt/homebrew/bin" "$HOME/.local/bin" "$HOME/bin")
@@ -52,7 +52,7 @@ ensure_source() {
   fi
 
   has_cmd git || fail "git is required for remote install"
-  [[ -n "$REPO_URL" ]] || fail "set TRACE_REPO_URL for remote install"
+  [[ -n "$REPO_URL" ]] || fail "set FORGE_REPO_URL for remote install"
 
   if [[ -d "$INSTALL_DIR/.git" ]]; then
     log "updating existing install at $INSTALL_DIR"
