@@ -12,9 +12,9 @@ Use semver:
 
 ## Lineage
 
-Forge synthesizes two prior projects:
-- **Ralph TUI** (`ralph-tui`) — autonomous agent orchestrator (the execution engine)
-- **Trace** (`trace`) — evidence-first spec pipeline (the specification engine)
+Forge is the third generation:
+- **Super-Ralph** (`super-ralph`) — three-phase SDLC framework (reverse/decompose/forward), the methodology
+- **Trace** (`trace`) — evidence-first spec pipeline, deeply refined the reverse phase
+- **Forge** — the synthesis: Trace's spec pipeline + autonomous self-replicating loops
 
-Forge is the convergence: specs feed autonomous improvement loops that self-replicate.
 Keep the upstream projects clean — new synthesis work belongs here.

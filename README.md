@@ -4,27 +4,31 @@ Turn evidence into implementation-ready artifacts through autonomous iterative r
 
 ## Lineage
 
-Forge is the convergence of two prior systems. Each solved part of the problem. Forge combines them.
+Forge is the third generation of a single idea. Each project explored part of the problem. Forge reconnects them.
 
-### Ralph TUI (the execution engine)
+### Super-Ralph (the methodology)
 
-The first system. An autonomous agent orchestrator: pick a task, build a context-aware prompt, run an agent, detect completion, repeat. Ralph proved that AI agents work best when you give them fat descriptions, fresh context per task, and a dumb runner that just picks the next ready thing. The intelligence lives in the task descriptions, not the orchestrator.
+The first system. A three-phase SDLC framework: REVERSE (input → spec), DECOMPOSE (spec → beads), FORWARD (beads → code). Super-Ralph proved that you can encode an entire development methodology — intake interrogation, spec generation, task decomposition, implementation — as structured bead packs with fat descriptions. The AI agent doesn't need to understand the methodology; it just executes the bead it's given. Strategy lives in the bead descriptions, not in the runner.
 
-Key insight: **strategy is encoded in task descriptions, not in the runner.**
+Super-Ralph separated strategy from execution. It defined *what* to do (the three-phase loop, the skill-specific question banks, the completion signals) and delegated *how* to run it to ralph-tui. Any compatible bead runner could execute Super-Ralph's process graphs without knowing the underlying methodology.
+
+Key insight: **the full SDLC is a loop — reverse/decompose/forward — and each phase can run autonomously if you encode the methodology in the task descriptions.**
 
 ### Trace (the specification engine)
 
-The second system. An evidence-first spec pipeline: take raw inputs (code, docs, transcripts, screenshots), classify them as evidence, run them through a 12-phase pipeline with adversarial review, and produce a planning-ready spec with provenance tracking. Trace proved that you need formal readiness gates, blocker rules, and stress-testing before any spec ships. The spec doesn't become planning-ready until dynamic agent teams find nothing wrong with it.
+The second system. Trace took Super-Ralph's REVERSE phase and went deep. Instead of a single spec-generation pass, Trace built a 12-phase pipeline with formal structure: evidence classification, provenance tracking, a single-reducer merge protocol, 12-dimension scoring ontology, adversarial review by dynamic agent teams, and a readiness state machine with blocker rules. The spec doesn't become planning-ready until adversarial agents find nothing wrong with it.
 
-Key insight: **readiness is a state machine with blocker rules, not a score threshold.**
+Where Super-Ralph's reverse phase produced specs through iterative interrogation (interactive or autonomous), Trace added rigor: every canonical claim must trace back to evidence, readiness gates enforce coverage thresholds, and the pipeline won't hand off a spec with unresolved blockers — even if the scores look good.
+
+Key insight: **readiness is a state machine with blocker rules, not a score threshold. Adversarial stress-testing before handoff catches what scoring alone misses.**
 
 ### Forge (the synthesis)
 
-Both systems converge on the same primitive: `hypothesis → act → evaluate → keep/discard → repeat`. Ralph applies it to implementation tasks. Trace applies it to spec quality. Forge makes that loop first-class.
+Both systems converge on the same primitive: `hypothesis → act → evaluate → keep/discard → repeat`. Super-Ralph applies it as reverse/decompose/forward phases. Trace applies it to spec quality through iterative evidence processing. Forge makes the loop first-class and self-replicating.
 
-Forge takes Trace's spec pipeline and adds autonomous improvement loops that self-replicate. After intake, you choose: work interactively (Trace's adaptive clarification), or hand it off to an autoresearch loop that runs overnight. Either path converges at the same readiness gate. The loop is the same pattern Ralph proved — fat bead descriptions, fresh agents, dumb runner — applied to iterative artifact refinement with blind scoring.
+Forge reconnects Trace's refined spec pipeline with an autonomous improvement loop inspired by Karpathy's autoresearch pattern: a four-bead cycle (doer/judge/arbiter/strategist) that self-replicates, running overnight if needed, with blind scoring that can't be gamed. After intake, you choose: work interactively (Trace's adaptive clarification), or hand it off to an autoresearch loop. Either path converges at the same readiness gate. The same loop pattern works for spec refinement, code implementation, or any artifact that can be scored.
 
-Key insight: **the spec pipeline and the execution engine are the same loop at different scales.**
+Key insight: **the spec pipeline and the execution engine are the same loop at different scales. Make it self-replicating and you can walk away.**
 
 ## The core loop
 
@@ -34,9 +38,7 @@ Everything in Forge reduces to this:
 hypothesis → act → evaluate → keep/discard → repeat
 ```
 
-At the spec level: the doer improves the spec, the judge scores it blind, the arbiter keeps or reverts, the strategist decides what to try next. At the implementation level: Ralph picks a bead, an agent executes it, review agents evaluate, the cycle continues.
-
-The autoresearch loop makes this concrete as a four-bead cycle:
+Super-Ralph's three phases are this loop at the SDLC scale. Trace's pipeline is this loop at the spec-quality scale. Forge's autoresearch cycle is this loop at the iteration scale — concrete, mechanical, self-replicating:
 
 ```
 doer-N → judge-N → arbiter-N → strategist-N → (stamps N+1)
@@ -143,7 +145,7 @@ The runner knows nothing about autoresearch, spec quality, or loop semantics. It
 6. Mark bead done
 7. Repeat until no ready beads or wall-clock cap
 
-The intelligence is in the bead descriptions, not the runner.
+The intelligence is in the bead descriptions, not the runner. This is the same principle Super-Ralph established — dumb runner, fat descriptions — applied to a self-replicating loop.
 
 ### Status
 
@@ -276,7 +278,7 @@ BUILD loop   (metric: test pass rate)              → code done
 QA loop      (metric: E2E + visual diff)           → product done
 ```
 
-Each inner loop is a self-contained autoresearch cycle with its own epic, ledger, and terminal conditions. This is the Ralph-to-Ralph model.
+Each inner loop is a self-contained autoresearch cycle with its own epic, ledger, and terminal conditions. This mirrors Super-Ralph's three-phase structure (reverse/decompose/forward) — but now each phase can be an autonomous self-replicating loop instead of a single pass.
 
 ## Skills
 
@@ -327,13 +329,17 @@ Installs `forge-pack` (helper CLI) and `ralph-loop` (bead runner) to your PATH.
 
 Looking back across the three projects:
 
-| | Ralph TUI | Trace | Forge |
+| | Super-Ralph | Trace | Forge |
 |---|---|---|---|
-| **Core question** | How do you run AI agents on task lists? | How do you build specs that don't hallucinate? | How do you autonomously refine artifacts to readiness? |
-| **Architecture** | TUI + plugins + trackers | Skill pipeline + sub-agents + readiness gates | Spec pipeline + self-replicating bead loops |
-| **Loop primitive** | Pick task → run agent → mark done | Process evidence → score → gate | Doer → judge → arbiter → strategist → repeat |
-| **Human role** | Watches the TUI, intervenes on errors | Answers clarifying questions | Chooses path, then walks away (or stays) |
-| **Intelligence lives in** | Task descriptions + prompt templates | Skill definitions + readiness rules | Bead descriptions + blind scoring contracts |
-| **What it proved** | Dumb runners + fat descriptions work | Formal readiness gates prevent hallucinated specs | The same loop works at every scale |
+| **Core question** | How do you encode the full SDLC as bead packs? | How do you build specs that don't hallucinate? | How do you autonomously refine artifacts to readiness? |
+| **Architecture** | Three-phase loop (reverse/decompose/forward) + skills + ralph-tui runner | Skill pipeline + sub-agents + readiness gates | Spec pipeline + self-replicating bead loops |
+| **Loop primitive** | Phase → interrogate/generate → completion signal → next phase | Process evidence → score → gate | Doer → judge → arbiter → strategist → repeat |
+| **Spec generation** | Single reverse pass (interactive or autonomous, up to 20 iterations) | 12-phase pipeline with provenance, adversarial review, readiness state machine | Choice of interactive pipeline or autonomous autoresearch loop |
+| **Task decomposition** | DECOMPOSE phase — agent assesses remaining work, generates small verifiable beads | Beads generation skill with dependency wiring and spec-claim mapping | Inherited from Trace, plus autoresearch can produce beads post-convergence |
+| **Implementation** | FORWARD phase — picks ready beads, implements sequentially | Not in scope (hands off to external executor) | Not yet in scope — but nested loops point the way |
+| **Human role** | Answers interrogation questions during reverse phase | Answers clarifying questions during spec-loop | Chooses path (interactive vs autonomous), then stays or walks away |
+| **Scoring** | Completion signals (complete/phase_done/blocked/failed) | 12-dimension ontology with 80/80 gates + adversarial convergence | Blind judge scoring + mechanical arbiter keep/revert |
+| **Intelligence lives in** | Phase templates + skill question banks + bead descriptions | Skill definitions + readiness rules + adversarial team composition | Bead descriptions + blind scoring contracts + self-replication |
+| **What it proved** | The full SDLC can be encoded as methodology, separate from execution | Formal readiness gates and adversarial review prevent hallucinated specs | The same loop pattern self-replicates at every scale |
 
-The pattern that emerged: encode strategy in descriptions, keep the runner dumb, use fresh context per task, and let the system self-replicate. Ralph did this for implementation. Trace did this for specs. Forge does both, and connects them.
+The thread through all three: encode strategy in descriptions, keep the runner dumb, use fresh context per task. Super-Ralph did this for the full SDLC lifecycle. Trace did this for spec quality with formal rigor. Forge closes the circle — the spec pipeline feeds autonomous loops that self-replicate using the same fat-description, dumb-runner pattern that started it all.
