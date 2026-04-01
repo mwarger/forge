@@ -1,0 +1,293 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# ralph-loop: the primitive bead runner
+#
+# Picks ready beads from a br epic, routes them to agents based on role
+# labels, marks them done, and repeats until no ready beads remain.
+#
+# The runner knows nothing about autoresearch, spec quality, or loop
+# semantics. It just runs beads. The intelligence is in the bead
+# descriptions.
+#
+# Usage: ralph-loop <epic-id> [--wall-clock <seconds>] [--agent <cmd>]
+#        ralph-loop status <epic-id>
+#        ralph-loop resume <epic-id>
+
+usage() {
+  cat <<EOF
+Usage: ralph-loop <subcommand|epic-id> [options]
+
+Subcommands:
+  status <epic-id>       Show loop status and iteration history
+  resume <epic-id>       Resume after human intervention (needs-human.md)
+
+Run mode:
+  ralph-loop <epic-id> [options]
+
+Options:
+  --wall-clock <seconds>   Maximum wall-clock time (0 = no limit, default)
+  --agent <cmd>            Agent CLI command (default: claude -p)
+  --dry-run                Print what would run without executing
+  -h, --help               Show this help
+
+Examples:
+  ralph-loop EPIC_042
+  ralph-loop EPIC_042 --wall-clock 28800
+  ralph-loop status EPIC_042
+  ralph-loop resume EPIC_042
+EOF
+  exit 0
+}
+
+log() {
+  printf '[ralph-loop] %s\n' "$1"
+}
+
+# --- status subcommand ---
+
+status_cmd() {
+  local epic_id="${1:?Usage: ralph-loop status <epic-id>}"
+
+  if [[ ! -f .autoresearch/config.json ]]; then
+    log "ERROR: no .autoresearch/config.json found"
+    exit 1
+  fi
+
+  local subject target
+  subject=$(jq -r '.subject // "unknown"' .autoresearch/config.json)
+  target=$(jq -r '.target // "none"' .autoresearch/config.json)
+
+  echo "=== Autoresearch Loop Status ==="
+  echo "Subject:  $subject"
+  echo "Epic:     $epic_id"
+  echo "Target:   $target"
+  echo ""
+
+  # Iteration stats from ledger
+  if [[ -s .autoresearch/research-log.jsonl ]]; then
+    local total kept reverted first_score last_score
+    total=$(wc -l < .autoresearch/research-log.jsonl | tr -d ' ')
+    kept=$(grep -c '"keep"' .autoresearch/research-log.jsonl || true)
+    reverted=$(grep -c '"revert"' .autoresearch/research-log.jsonl || true)
+    first_score=$(head -1 .autoresearch/research-log.jsonl | jq -r '.score_after')
+    last_score=$(tail -1 .autoresearch/research-log.jsonl | jq -r '.score_after')
+
+    echo "Iterations: $total (kept: $kept, reverted: $reverted)"
+    echo "Score:      $first_score → $last_score"
+    echo ""
+
+    # Recent history (last 5)
+    echo "--- Recent History ---"
+    tail -5 .autoresearch/research-log.jsonl | jq -r '"  iter \(.iter): \(.score_before)→\(.score_after) (\(.decision))"'
+  else
+    echo "Iterations: 0 (no ledger entries)"
+  fi
+
+  echo ""
+
+  # Phase detection
+  if [[ -f .autoresearch/terminal-signal.json ]]; then
+    local reason
+    reason=$(jq -r '.reason // .terminal // "unknown"' .autoresearch/terminal-signal.json)
+    echo "Phase:    TERMINATED ($reason)"
+  elif [[ -f .autoresearch/needs-human.md ]]; then
+    echo "Phase:    WAITING FOR HUMAN"
+    echo "          (see .autoresearch/needs-human.md)"
+  elif [[ -f .autoresearch/arbiter-signal.json ]]; then
+    local next_iter
+    next_iter=$(jq -r '.next_iter // "?"' .autoresearch/arbiter-signal.json)
+    echo "Phase:    RUNNING (next iteration: $next_iter)"
+  else
+    echo "Phase:    READY (not started or between cycles)"
+  fi
+}
+
+# --- resume subcommand ---
+
+resume_cmd() {
+  local epic_id="${1:?Usage: ralph-loop resume <epic-id>}"
+
+  if [[ ! -f .autoresearch/needs-human.md ]]; then
+    log "ERROR: no .autoresearch/needs-human.md found — nothing to resume"
+    exit 1
+  fi
+
+  # Determine current iteration from ledger
+  local current_iter=0
+  if [[ -s .autoresearch/research-log.jsonl ]]; then
+    current_iter=$(tail -1 .autoresearch/research-log.jsonl | jq -r '.iter')
+  fi
+  local next_iter=$((current_iter + 1))
+
+  log "resuming from iteration $current_iter (human input provided)"
+
+  # Write a continue signal so the strategist sees it
+  echo "{\"type\":\"continue\",\"iter\":$current_iter,\"next_iter\":$next_iter,\"current_score\":0,\"decision\":\"keep\",\"delta\":0}" > .autoresearch/arbiter-signal.json
+
+  # Read agent config
+  local strategist_agent="claude-sonnet"
+  if [[ -f .autoresearch/config.json ]]; then
+    strategist_agent=$(jq -r '.agents.strategist // "claude-sonnet"' .autoresearch/config.json)
+  fi
+
+  # Stamp a resume-strategist bead
+  local resume_desc
+  resume_desc="You are a resume-strategist for autoresearch loop \`$epic_id\`.
+
+A human was asked a question during the loop. Their answer is in \`.autoresearch/needs-human.md\`.
+
+### Your job
+
+1. Read \`.autoresearch/needs-human.md\` for the human's answer.
+2. Read \`.autoresearch/research-log.jsonl\` for iteration history.
+3. Read \`.autoresearch/config.json\` for loop configuration.
+4. Incorporate the human's answer into a focus directive for the next doer.
+5. Stamp the next four-bead cycle (doer/judge/arbiter/strategist) as a normal strategist would.
+6. Archive \`needs-human.md\` to \`.autoresearch/needs-human-resolved-${current_iter}.md\`.
+
+Use the same templates and patterns as a regular strategist bead. Read
+\`.autoresearch/judge-template.md\` and \`.autoresearch/arbiter-template.sh\`
+for the judge and arbiter descriptions."
+
+  local resume_id
+  resume_id=$(br create --title "resume-strategist: incorporate human input" \
+    --type task --parent "$epic_id" \
+    --labels "autoresearch,role:strategist,agent:$strategist_agent" \
+    --description "$resume_desc" 2>/dev/null | jq -r '.id // .')
+
+  log "stamped resume-strategist bead: $resume_id"
+  log "falling through to main run loop"
+
+  # Fall through to run loop
+  run_loop "$epic_id" "$@"
+}
+
+# --- Main run loop ---
+
+run_loop() {
+  local epic_id="$1"
+  shift || true
+
+  local wall_clock=0
+  local agent_cmd="claude -p"
+  local dry_run=false
+
+  while [[ $# -gt 0 ]]; do
+    case $1 in
+      --wall-clock) wall_clock=$2; shift 2 ;;
+      --agent) agent_cmd=$2; shift 2 ;;
+      --dry-run) dry_run=true; shift ;;
+      *) log "unknown flag: $1"; exit 1 ;;
+    esac
+  done
+
+  local start iter
+  start=$(date +%s)
+  iter=0
+
+  log "starting on $epic_id"
+  [[ $wall_clock -gt 0 ]] && log "wall-clock cap: ${wall_clock}s"
+
+  while true; do
+    # Wall-clock check
+    if [[ $wall_clock -gt 0 ]]; then
+      local elapsed=$(( $(date +%s) - start ))
+      if [[ $elapsed -ge $wall_clock ]]; then
+        log "wall-clock cap reached (${elapsed}s)"
+        break
+      fi
+    fi
+
+    # Pick next ready bead
+    local next
+    next=$(br ready --parent "$epic_id" --limit 1 --format json 2>/dev/null || echo "[]")
+    if [[ "$next" == "[]" || -z "$next" ]]; then
+      log "no ready beads. done."
+      break
+    fi
+
+    local bead_id bead_title bead_desc
+    bead_id=$(echo "$next" | jq -r '.[0].id')
+    bead_title=$(echo "$next" | jq -r '.[0].title // "untitled"')
+    bead_desc=$(br show "$bead_id" --format description 2>/dev/null || echo "")
+
+    # Read labels for routing
+    local labels role agent_label
+    labels=$(echo "$next" | jq -r '.[0].labels // [] | join(",")' 2>/dev/null || echo "")
+    role=$(echo "$labels" | tr ',' '\n' | grep '^role:' | head -1 || echo "role:default")
+    agent_label=$(echo "$labels" | tr ',' '\n' | grep '^agent:' | head -1 | sed 's/^agent://' || echo "")
+
+    iter=$((iter + 1))
+    log "[$bead_id] #$iter $bead_title ($role)"
+
+    if $dry_run; then
+      log "[$bead_id] dry-run: would execute with $role routing"
+      br done "$bead_id"
+      continue
+    fi
+
+    # Determine agent command — bead label overrides default
+    local bead_agent="$agent_cmd"
+    if [[ -n "$agent_label" ]]; then
+      bead_agent="claude -p --model $agent_label"
+    fi
+
+    # Route based on role label
+    case "$role" in
+      role:arbiter-script)
+        # Mechanical arbiter — extract bash from description and run it
+        local script
+        script=$(echo "$bead_desc" | sed -n '/^```bash/,/^```$/p' | sed '1d;$d')
+        if [[ -z "$script" ]]; then
+          log "[$bead_id] ERROR: arbiter-script bead has no bash block"
+          break
+        fi
+        bash -c "$script"
+        ;;
+
+      role:judge)
+        # Judge gets read-only tools
+        $bead_agent "$bead_desc" --allowedTools Read,Bash,Grep,Glob
+        ;;
+
+      *)
+        # Doer, strategist, retrospective — full tool access
+        $bead_agent "$bead_desc" --allowedTools Edit,Read,Write,Bash,Grep,Glob
+        ;;
+    esac
+
+    local exit_code=$?
+    if [[ $exit_code -ne 0 ]]; then
+      log "[$bead_id] agent exited with code $exit_code — skipping mark-done"
+      continue
+    fi
+
+    br done "$bead_id"
+    log "[$bead_id] complete"
+  done
+
+  local elapsed=$(( $(date +%s) - start ))
+  log "finished after $iter beads in ${elapsed}s"
+}
+
+# --- Argument parsing ---
+
+[[ ${1:-} == "-h" || ${1:-} == "--help" ]] && usage
+[[ -z "${1:-}" ]] && usage
+
+case "${1:-}" in
+  status)
+    shift
+    status_cmd "$@"
+    ;;
+  resume)
+    shift
+    resume_cmd "$@"
+    ;;
+  *)
+    epic_id="$1"
+    shift
+    run_loop "$epic_id" "$@"
+    ;;
+esac
