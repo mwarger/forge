@@ -228,7 +228,7 @@ run_loop() {
 
     if $dry_run; then
       log "[$bead_id] dry-run: would execute with $role routing"
-      br done "$bead_id"
+      br close "$bead_id"
       continue
     fi
 
@@ -268,7 +268,7 @@ run_loop() {
       continue
     fi
 
-    br done "$bead_id"
+    br close "$bead_id"
     log "[$bead_id] complete"
   done
 
