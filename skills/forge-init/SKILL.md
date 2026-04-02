@@ -46,7 +46,7 @@ confirm, edit, or skip each one. Ask about:
 1. Which validation commands to enable (lint, typecheck, test)
 2. Which are required (block commits) vs optional (warn only)
 3. Any custom commands to add
-4. Which model to use for the commit agent (default: `claude-haiku-4-5-20251001`)
+4. Which model to use for the commit agent (default: `claude-sonnet-4-6`)
 
 ### Step 4: Write `.forge/config.json`
 
@@ -62,7 +62,7 @@ Create the `.forge/` directory and write the config:
     ]
   },
   "auto_commit": {
-    "model": "claude-haiku-4-5-20251001",
+    "model": "claude-sonnet-4-6",
     "skip_roles": ["arbiter-script", "judge"]
   }
 }

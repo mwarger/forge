@@ -190,10 +190,10 @@ run_loop() {
   done
 
   # Read commit agent model from .forge/config.json if available
-  local commit_model="claude-haiku-4-5-20251001"
+  local commit_model="claude-sonnet-4-6"
   local commit_skip_roles="arbiter-script,judge"
   if [[ -f .forge/config.json ]]; then
-    commit_model=$(jq -r '.auto_commit.model // "claude-haiku-4-5-20251001"' .forge/config.json)
+    commit_model=$(jq -r '.auto_commit.model // "claude-sonnet-4-6"' .forge/config.json)
     commit_skip_roles=$(jq -r '.auto_commit.skip_roles // ["arbiter-script","judge"] | join(",")' .forge/config.json)
   fi
 
