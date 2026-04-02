@@ -18,6 +18,7 @@ detect_skills_dir() {
 MANIFEST_NAME=".forge-pack-install.json"
 SKILL_NAMES=(
   forge-orchestrator
+  forge-init
   spec-intake
   spec-loop
   spec-completeness
@@ -65,6 +66,7 @@ write_manifest() {
 import json, os
 skills = [
   "forge-orchestrator",
+  "forge-init",
   "spec-intake",
   "spec-loop",
   "spec-completeness",

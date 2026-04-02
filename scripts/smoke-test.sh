@@ -21,6 +21,7 @@ require_file "$ROOT_DIR/bin/ralph-loop"
 
 for skill in \
   forge-orchestrator \
+  forge-init \
   spec-intake \
   spec-loop \
   spec-completeness \
