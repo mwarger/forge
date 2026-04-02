@@ -51,4 +51,4 @@ Then start a new Claude Code session and try:
 
 - "Create a subject-named spec for this feature request using Forge."
 - "Stamp an autoresearch loop for overnight improvement."
-- "Use the trace-orchestrator skill on this codebase."
+- "Use the forge-orchestrator skill on this codebase."

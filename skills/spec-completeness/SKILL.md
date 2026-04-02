@@ -7,7 +7,7 @@ allowed-tools: Read, Write, Glob, Grep
 Use this whenever canon changes materially.
 
 Do not finalize readiness here.
-Emit structured inputs for the `trace-orchestrator` verdict.
+Emit structured inputs for the `forge-orchestrator` verdict.
 
 ## Ontology
 

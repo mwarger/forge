@@ -53,8 +53,8 @@ After the subject spec reaches a stable draft, create or update the row for the
 current subject inside the managed block in `specs/README.md`.
 
 Managed block markers:
-- `<!-- trace:spec-index:start -->`
-- `<!-- trace:spec-index:end -->`
+- `<!-- forge:spec-index:start -->`
+- `<!-- forge:spec-index:end -->`
 
 Preserve prose outside the managed block.
 

@@ -29,7 +29,7 @@ The user runs `ralph-loop <epic-id>` separately.
 
 Collect from the user or from prior pipeline artifacts:
 
-- **Program**: what the doer should work on. If a Trace spec run exists, use
+- **Program**: what the doer should work on. If a Forge spec run exists, use
   the spec subject and evidence as the program. If the user provides a
   description, use that. If unclear, ask.
 - **Metric type**: `hard` (test command, lint, benchmark) or `soft` (agent
@@ -81,7 +81,7 @@ Write `.autoresearch/config.json`:
 }
 ```
 
-Write `.autoresearch/program.md` — the stable directive. If from a Trace
+Write `.autoresearch/program.md` — the stable directive. If from a Forge
 intake, include:
 - Goal statement
 - Design decisions (resolved)
@@ -110,7 +110,7 @@ subsequent cycles, rather than having to re-derive the descriptions.
 
 ```bash
 br create --type epic --title "autoresearch: <subject>" \
-  --labels "autoresearch,trace:<subject-slug>"
+  --labels "autoresearch,forge:<subject-slug>"
 ```
 
 Update `config.json` with the epic ID.

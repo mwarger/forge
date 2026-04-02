@@ -60,9 +60,9 @@ B) Autoresearch loop — autonomous iterative improvement with blind scoring.
 
 Both paths converge at the same READINESS_GATE. The spec doesn't care how it got there.
 
-### Path A: Interactive (Trace's spec-loop)
+### Path A: Interactive (Forge's spec-loop)
 
-You stay in the conversation. The pipeline asks clarifying questions mapped to critical decision buckets, processes evidence units, drafts spec sections, and loops until readiness gates pass. Then adversarial review, plan handoff, optional beads. This is Trace's full 12-phase pipeline, unchanged.
+You stay in the conversation. The pipeline asks clarifying questions mapped to critical decision buckets, processes evidence units, drafts spec sections, and loops until readiness gates pass. Then adversarial review, plan handoff, optional beads. This is the full 12-phase pipeline, unchanged from Trace.
 
 Best for: new features, sparse prompts, anything where the critical decisions haven't been made yet.
 
@@ -215,7 +215,7 @@ When a terminal signal is written, the arbiter removes any stale continue signal
 
 ## The spec pipeline
 
-The full pipeline from Trace, integrated with autoresearch:
+The full pipeline, integrated with autoresearch:
 
 ```
 evidence → intake → [choice point] → readiness gate → adversarial review → plan handoff → beads
@@ -284,7 +284,7 @@ Each inner loop is a self-contained autoresearch cycle with its own epic, ledger
 
 | Skill | Role |
 |-------|------|
-| `trace-orchestrator` | Top-level orchestrator — routes through sub-skills, manages state, sole reducer |
+| `forge-orchestrator` | Top-level orchestrator — routes through sub-skills, manages state, sole reducer |
 | `spec-intake` | Normalize inputs, classify archetype, seed evidence ledger |
 | `spec-loop` | Process evidence, ask clarifying questions, emit speculative variants |
 | `spec-completeness` | Score spec against 12-dimension ontology, enforce 80/80 gates |
@@ -335,7 +335,7 @@ Looking back across the three projects:
 | **Architecture** | Three-phase loop (reverse/decompose/forward) + skills + ralph-tui runner | Skill pipeline + sub-agents + readiness gates | Spec pipeline + self-replicating bead loops |
 | **Loop primitive** | Phase → interrogate/generate → completion signal → next phase | Process evidence → score → gate | Doer → judge → arbiter → strategist → repeat |
 | **Spec generation** | Single reverse pass (interactive or autonomous, up to 20 iterations) | 12-phase pipeline with provenance, adversarial review, readiness state machine | Choice of interactive pipeline or autonomous autoresearch loop |
-| **Task decomposition** | DECOMPOSE phase — agent assesses remaining work, generates small verifiable beads | Beads generation skill with dependency wiring and spec-claim mapping | Inherited from Trace, plus autoresearch can produce beads post-convergence |
+| **Task decomposition** | DECOMPOSE phase — agent assesses remaining work, generates small verifiable beads | Beads generation skill with dependency wiring and spec-claim mapping | Inherited from Trace's beads generation, plus autoresearch can produce beads post-convergence |
 | **Implementation** | FORWARD phase — picks ready beads, implements sequentially | Not in scope (hands off to external executor) | Not yet in scope — but nested loops point the way |
 | **Human role** | Answers interrogation questions during reverse phase | Answers clarifying questions during spec-loop | Chooses path (interactive vs autonomous), then stays or walks away |
 | **Scoring** | Completion signals (complete/phase_done/blocked/failed) | 12-dimension ontology with 80/80 gates + adversarial convergence | Blind judge scoring + mechanical arbiter keep/revert |

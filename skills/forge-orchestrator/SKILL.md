@@ -1,6 +1,6 @@
 ---
-name: trace-orchestrator
-description: "Create a subject-named specification from any evidence source using a reducer-based Trace workflow. Use this when the user wants a planning-ready spec, a clean-room reverse spec, or an evidence-first feature spec with sub-agent fanout, provenance tracking, adaptive clarification, speculative variants, and a canonical readiness contract."
+name: forge-orchestrator
+description: "Create a subject-named specification from any evidence source using a reducer-based Forge workflow. Use this when the user wants a planning-ready spec, a clean-room reverse spec, or an evidence-first feature spec with sub-agent fanout, provenance tracking, adaptive clarification, speculative variants, and a canonical readiness contract."
 allowed-tools: Read, Write, Edit, Glob, Grep, Bash, Agent
 ---
 
@@ -25,7 +25,7 @@ Trigger when the user wants to:
 3. The lead agent is the only reducer.
 4. Use sub-agents by default for bounded read-heavy work.
 5. Ask the user directly when user input is needed.
-6. `trace-orchestrator` owns the canonical readiness verdict.
+6. `forge-orchestrator` owns the canonical readiness verdict.
 7. No run is planning-ready if blocker reasons remain open.
 8. Scores matter only after blocker reasons are cleared.
 9. A `sparse` `analogy_feature` or `parity_clone` run with
@@ -68,7 +68,7 @@ Every run must carry these canonical fields in `manifest.json` and
 - `beads_workspace_path`
 - `loop_strategy`
 
-`trace-orchestrator` is the only skill allowed to finalize:
+`forge-orchestrator` is the only skill allowed to finalize:
 - `planning_status`
 - `handoff_status`
 - `blocker_reasons`
@@ -227,7 +227,7 @@ If user chooses B:
 1. Invoke `autoresearch-loop` skill
 2. Set `loop_strategy = "autoresearch"` in run-state.json
 3. Return epic ID to user — the run pauses here
-4. User resumes Trace after loop converges (see post-loop re-entry)
+4. User resumes Forge after loop converges (see post-loop re-entry)
 
 If user chooses A (default):
 
@@ -359,7 +359,7 @@ Root index:
 Canonical spec:
 - `specs/<subject>.md`
 
-Project-level (not per-spec — persists across all Trace runs):
+Project-level (not per-spec — persists across all Forge runs):
 - `UBIQUITOUS-LANGUAGE.md` — domain glossary at the project root, created
   during intake if missing, updated throughout the pipeline and by epilogue
   beads
@@ -396,7 +396,7 @@ Sidecars:
 
 ## Root specs index
 
-Every successful Trace run must leave behind a root `specs/README.md`.
+Every successful Forge run must leave behind a root `specs/README.md`.
 
 Rules:
 - if `specs/README.md` is missing, create it before or alongside the subject spec
@@ -405,8 +405,8 @@ Rules:
 - do not duplicate rows for the same subject; update the existing row
 
 Managed block markers:
-- `<!-- trace:spec-index:start -->`
-- `<!-- trace:spec-index:end -->`
+- `<!-- forge:spec-index:start -->`
+- `<!-- forge:spec-index:end -->`
 
 The root index is for discovery and navigation.
 The subject spec is the backing artifact to hand to an external implementation

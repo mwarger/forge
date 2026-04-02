@@ -63,7 +63,7 @@ Test sketches are embedded in the bead description by default. Use
 ### Evidence sources
 
 Agents must use `br` and `bv --robot-*` commands as evidence sources:
-- `br list --label trace:<subject>` — list beads for this spec
+- `br list --label forge:<subject>` — list beads for this spec
 - `br show <id>` — read bead details
 - `br dep list <id>` — check dependencies
 - `br dep tree <id>` — visualize dependency tree

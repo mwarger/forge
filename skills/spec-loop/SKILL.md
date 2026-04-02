@@ -1,6 +1,6 @@
 ---
 name: spec-loop
-description: "Run the evidence-first Trace loop for a subject spec. Use this when you need to process evidence one unit at a time, produce unit summaries, rewrite the rolling summary, branch out to sub-agents for bounded exploration, choose adaptive clarification profiles, and emit speculative variants when blockers remain."
+description: "Run the evidence-first Forge loop for a subject spec. Use this when you need to process evidence one unit at a time, produce unit summaries, rewrite the rolling summary, branch out to sub-agents for bounded exploration, choose adaptive clarification profiles, and emit speculative variants when blockers remain."
 allowed-tools: Read, Write, Edit, Glob, Grep, Agent
 ---
 

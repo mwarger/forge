@@ -104,7 +104,7 @@ If `UBIQUITOUS-LANGUAGE.md` exists at the project root:
 - Add any new domain terms that emerged during the loop
 - Do not remove existing content
 
-### Step 5: Prepare Trace re-entry
+### Step 5: Prepare Forge re-entry
 
 If `specs/_artifacts/{{SUBJECT}}/run-state.json` exists, update it:
 - Set `planning_status` to `READINESS_GATE`
@@ -115,7 +115,7 @@ If `specs/_artifacts/{{SUBJECT}}/run-state.json` exists, update it:
 - Set `autoresearch_epic_id` to the epic ID
 - Set `autoresearch_terminal_reason` from terminal-signal.json
 
-This allows trace-orchestrator to detect the completed loop and resume
+This allows forge-orchestrator to detect the completed loop and resume
 from READINESS_GATE.
 
 ### Rules

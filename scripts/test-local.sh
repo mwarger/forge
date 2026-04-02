@@ -39,7 +39,7 @@ FORGE_SKILLS_DIR="$TEST_SKILLS_DIR" codex
 Suggested prompts:
 
 - Create a subject-named spec for this feature request using Forge.
-- Use the trace-orchestrator skill to build a spec from evidence.
+- Use the forge-orchestrator skill to build a spec from evidence.
 - Stamp an autoresearch loop for overnight improvement.
 EOF
 

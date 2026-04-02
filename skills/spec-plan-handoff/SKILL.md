@@ -4,7 +4,7 @@ description: "Render the implementation handoff for a subject spec. Use this whe
 allowed-tools: Read, Write, Glob, Grep
 ---
 
-Use this only after `trace-orchestrator` has finalized `planning_status` and
+Use this only after `forge-orchestrator` has finalized `planning_status` and
 `handoff_status`.
 
 ## Preconditions

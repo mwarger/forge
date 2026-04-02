@@ -1,6 +1,6 @@
 ---
 name: spec-intake
-description: "Normalize all starting evidence into a subject spec run. Use this when beginning a Trace spec from code, docs, transcripts, screenshots, URLs, or a sparse user request. Creates the subject slug, frontmatter, evidence ledgers, request archetype, evidence-density classification, and canonical readiness skeleton."
+description: "Normalize all starting evidence into a subject spec run. Use this when beginning a Forge spec from code, docs, transcripts, screenshots, URLs, or a sparse user request. Creates the subject slug, frontmatter, evidence ledgers, request archetype, evidence-density classification, and canonical readiness skeleton."
 allowed-tools: Read, Write, Glob, Grep, Bash, Agent
 ---
 
@@ -28,8 +28,8 @@ Turn raw inputs into a normalized evidence run with:
    - a one-line description of the specs tree
    - an optional notes section
    - a managed block delimited by:
-     - `<!-- trace:spec-index:start -->`
-     - `<!-- trace:spec-index:end -->`
+     - `<!-- forge:spec-index:start -->`
+     - `<!-- forge:spec-index:end -->`
 4. If `specs/README.md` exists but the managed block is missing, add the
    managed block without deleting human prose outside it.
 5. Create `specs/<subject>.md`.

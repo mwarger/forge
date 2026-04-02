@@ -20,7 +20,7 @@ require_file "$ROOT_DIR/.claude-plugin/plugin.json"
 require_file "$ROOT_DIR/bin/ralph-loop"
 
 for skill in \
-  trace-orchestrator \
+  forge-orchestrator \
   spec-intake \
   spec-loop \
   spec-completeness \

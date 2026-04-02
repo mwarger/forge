@@ -236,11 +236,11 @@ Each inner loop is a self-contained autoresearch cycle with its own epic,
 ledger, and terminal conditions. The macro orchestrator stamps the next loop
 when the previous converges. This is the Ralph-to-Ralph model.
 
-## Integration with Trace
+## Integration with the spec pipeline
 
-Trace's existing pipeline maps to loop configurations:
+The spec pipeline maps to loop configurations:
 
-| Trace Phase | Loop Equivalent |
+| Pipeline Phase | Loop Equivalent |
 |---|---|
 | INTAKE | Interactive grill-me → produces program.md |
 | EVIDENCE_FANOUT | Early doer iterations (score < 50) |
@@ -250,7 +250,7 @@ Trace's existing pipeline maps to loop configurations:
 | ADVERSARIAL_REVIEW | Judge swap to adversarial rubric at high scores |
 | PLAN_HANDOFF | Separate skill after loop converges |
 
-Trace's valuable properties survive:
+The pipeline's valuable properties survive:
 - **Provenance**: doer instructions require evidence citations; judge rubric
   scores provenance
 - **Readiness contract**: arbiter maintains `run-state.json` mechanically

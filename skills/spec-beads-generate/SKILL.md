@@ -27,10 +27,10 @@ it can and hands it to the adversarial team (`spec-beads-review`).
 2. if `.beads` exists at the git root, use it — do not re-init
 3. if `.beads` does not exist, run `br init` at the git root
 4. create an epic for the spec subject:
-   `br create --type epic --title "<subject>" --labels "trace:<subject-slug>"`
+   `br create --type epic --title "<subject>" --labels "forge:<subject-slug>"`
 5. read each workstream from `implementation-plan.md` and create beads:
    - one bead per discrete work unit within a workstream
-   - `br create --title "..." --type task --parent <epic-id> --labels "trace:<subject-slug>" --description "..."`
+   - `br create --title "..." --type task --parent <epic-id> --labels "forge:<subject-slug>" --description "..."`
    - description includes: what to do, acceptance criteria, which spec claims
      this bead covers
 6. wire dependencies from the implementation plan's dependency graph:
@@ -202,7 +202,7 @@ These are meta-beads for post-implementation quality and continuous improvement.
 They do not map to spec claims.
 
 Create each with:
-`br create --title "Epilogue: <name>" --type task --parent <epic-id> --labels "trace:<subject-slug>,epilogue" --description "..."`
+`br create --title "Epilogue: <name>" --type task --parent <epic-id> --labels "forge:<subject-slug>,epilogue" --description "..."`
 
 Wire each epilogue bead as depending on ALL implementation beads:
 `br dep add <epilogue-id> <impl-bead-id>` for every implementation bead.
@@ -299,13 +299,13 @@ Every follow-up bead created by an epilogue MUST be parented to the epic and
 use this exact command template:
 
 ```
-br create --title "<fix description>" --type task --parent <epic-id> --labels "trace:<subject-slug>,epilogue-followup" --description "<finding details and remediation steps>"
+br create --title "<fix description>" --type task --parent <epic-id> --labels "forge:<subject-slug>,epilogue-followup" --description "<finding details and remediation steps>"
 ```
 
 Hard requirements:
 - `--parent <epic-id>` is mandatory — omitting it creates an orphan invisible
   to `br ready` in the epic context
-- `--labels` must include both `trace:<subject-slug>` and `epilogue-followup`
+- `--labels` must include both `forge:<subject-slug>` and `epilogue-followup`
 - each follow-up bead must declare a dependency on the bead whose code it
   addresses: `br dep add <followup-id> <source-bead-id>`
 - update `beads-manifest.json` `followup_beads` array with the new bead
