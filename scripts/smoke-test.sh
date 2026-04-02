@@ -34,6 +34,10 @@ do
   require_file "$ROOT_DIR/skills/$skill/SKILL.md"
 done
 
+log "checking hooks"
+require_file "$ROOT_DIR/hooks/hooks.json"
+require_file "$ROOT_DIR/hooks/forge-orchestrator-stop.sh"
+
 log "checking autoresearch-loop references"
 require_file "$ROOT_DIR/skills/autoresearch-loop/references/arbiter.sh"
 require_file "$ROOT_DIR/skills/autoresearch-loop/references/doer.md"

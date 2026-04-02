@@ -149,36 +149,36 @@ Each phase needs entry criteria, exit criteria, and a checkpoint artifact in
 
 ### Auto-transition rule
 
-Phases 8 through 12 are **automatic**: when a phase's exit criteria are met,
-immediately invoke the next sub-skill without pausing for user input. Do not
-stop to summarize intermediate results between phases. Specifically:
+Phases 8–12 auto-chain. After each phase completes, check run-state.json
+and invoke the next skill. Do not summarize. Do not ask the user. Invoke it.
 
-- `READINESS_GATE` passes (`completeness_score >= 80`,
-  `evidence_confidence_score >= 80`, `blocker_reasons` empty) →
-  immediately invoke `spec-synthesis-review`
-- `spec-synthesis-review` verification passes →
-  immediately set `planning_status = ADVERSARIAL_REVIEW` and invoke
-  `spec-adversarial-review`
-- `spec-adversarial-review` converges →
-  immediately set `planning_status = PLANNING_READY`,
-  `handoff_status = ELIGIBLE` and invoke `spec-plan-handoff`.
-  Do not present options, summarize findings, or ask the user what to do
-  next — the transition to plan handoff is not optional.
-- `PLAN_HANDOFF` completes → prompt user for beads (this is the only
-  user-facing pause in the late pipeline)
-- `BEADS_GENERATION` completes → immediately invoke `spec-beads-review`
+```
+READINESS_GATE passes   → invoke spec-synthesis-review
+synthesis-review passes → invoke spec-adversarial-review
+adversarial-review converges → invoke spec-plan-handoff
+PLAN_HANDOFF completes  → prompt user for beads (ONLY allowed pause)
+BEADS_GENERATION done   → invoke spec-beads-review
+```
+
+Between auto-transition phases, emit one status line (e.g.,
+"READINESS_GATE passed → running spec-synthesis-review") and invoke the
+next skill. No multi-line summaries. No options. No questions.
 
 The only reasons to pause mid-pipeline are: (a) a gate fails and the run
-loops back, or (b) user input is required (beads prompt after plan handoff).
-Report phase transitions in a single status line, not a multi-line summary.
+loops back, or (b) the user must choose whether to generate beads after
+plan handoff.
+
+A Stop hook enforces this contract mechanically. If you stop between
+auto-transition phases, the hook will block the stop and tell you to
+continue.
 
 `ADVERSARIAL_REVIEW` phase contract:
 - entry: synthesis-review passed, scoring gates met (`completeness_score >= 80`,
   `evidence_confidence_score >= 80`, `blocker_reasons` empty)
 - exit: convergence (zero material findings by agent consensus) or
   decomposition required (cap hit).
-  On convergence, do not pause or summarize — the auto-transition rule
-  governs. Immediately proceed to `spec-plan-handoff`.
+  On convergence → invoke `spec-plan-handoff`. The auto-transition rule
+  governs. Do not pause.
 - checkpoint: `adversarial-review-log.md`
 
 `BEADS_GENERATION` phase contract:
