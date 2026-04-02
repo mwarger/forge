@@ -28,11 +28,14 @@ Run mode:
 Options:
   --wall-clock <seconds>   Maximum wall-clock time (0 = no limit, default)
   --agent <cmd>            Agent CLI command (default: claude -p)
+  --auto-commit            Commit changes after each bead via agent
+  --worktree               Run in an isolated git worktree
   --dry-run                Print what would run without executing
   -h, --help               Show this help
 
 Examples:
   ralph-loop EPIC_042
+  ralph-loop EPIC_042 --auto-commit --worktree
   ralph-loop EPIC_042 --wall-clock 28800
   ralph-loop status EPIC_042
   ralph-loop resume EPIC_042
@@ -172,15 +175,47 @@ run_loop() {
   local wall_clock=0
   local agent_cmd="claude -p"
   local dry_run=false
+  local auto_commit=false
+  local use_worktree=false
 
   while [[ $# -gt 0 ]]; do
     case $1 in
       --wall-clock) wall_clock=$2; shift 2 ;;
       --agent) agent_cmd=$2; shift 2 ;;
+      --auto-commit) auto_commit=true; shift ;;
+      --worktree) use_worktree=true; shift ;;
       --dry-run) dry_run=true; shift ;;
       *) log "unknown flag: $1"; exit 1 ;;
     esac
   done
+
+  # Read commit agent model from .forge/config.json if available
+  local commit_model="claude-haiku-4-5-20251001"
+  local commit_skip_roles="arbiter-script,judge"
+  if [[ -f .forge/config.json ]]; then
+    commit_model=$(jq -r '.auto_commit.model // "claude-haiku-4-5-20251001"' .forge/config.json)
+    commit_skip_roles=$(jq -r '.auto_commit.skip_roles // ["arbiter-script","judge"] | join(",")' .forge/config.json)
+  fi
+
+  # Set up worktree if requested
+  local worktree_dir=""
+  if $use_worktree; then
+    local branch_name="ralph-loop/${epic_id}"
+    worktree_dir=".ralph-worktrees/${epic_id}"
+    mkdir -p "$(dirname "$worktree_dir")"
+
+    if [[ -d "$worktree_dir" ]]; then
+      log "worktree already exists at $worktree_dir — reusing"
+    else
+      log "creating worktree at $worktree_dir (branch: $branch_name)"
+      git worktree add "$worktree_dir" -b "$branch_name" 2>/dev/null \
+        || git worktree add "$worktree_dir" "$branch_name" 2>/dev/null \
+        || { log "ERROR: failed to create worktree"; exit 1; }
+    fi
+
+    cd "$worktree_dir"
+    log "working in worktree: $(pwd)"
+  fi
 
   local start iter
   start=$(date +%s)
@@ -188,6 +223,7 @@ run_loop() {
 
   log "starting on $epic_id"
   [[ $wall_clock -gt 0 ]] && log "wall-clock cap: ${wall_clock}s"
+  $auto_commit && log "auto-commit enabled (model: $commit_model)"
 
   while true; do
     # Wall-clock check
@@ -270,10 +306,51 @@ run_loop() {
 
     br close "$bead_id"
     log "[$bead_id] complete"
+
+    # Auto-commit: spawn agent to commit changes after code-writing beads
+    if $auto_commit; then
+      local role_bare="${role#role:}"
+      if echo "$commit_skip_roles" | tr ',' '\n' | grep -qx "$role_bare"; then
+        log "[$bead_id] auto-commit: skipping ($role_bare)"
+      else
+        # Check if there are actually changes to commit
+        if ! git diff --quiet HEAD 2>/dev/null || [[ -n "$(git ls-files --others --exclude-standard 2>/dev/null)" ]]; then
+          log "[$bead_id] auto-commit: running commit agent"
+          local commit_prompt
+          commit_prompt="You just completed bead \"$bead_id\": \"$bead_title\".
+
+Stage all relevant changes and commit with this message format:
+
+[ralph-loop] $bead_id: $bead_title
+
+<one-line summary of what changed>
+
+Rules:
+- Stage specific files (not git add -A). Do not stage .forge/ or .autoresearch/ directories.
+- If the commit fails due to pre-commit hooks, read the error output, fix the issues (lint, typecheck, formatting), re-stage, and retry.
+- Keep retrying until the commit succeeds or you have tried 3 times.
+- Do not use --no-verify to skip hooks.
+- If you cannot fix the issues after 3 tries, commit with --no-verify and add a note in the commit body explaining what failed."
+
+          claude -p --model "$commit_model" "$commit_prompt" --allowedTools Edit,Read,Write,Bash,Grep,Glob || {
+            log "[$bead_id] auto-commit: agent failed (exit $?) — continuing"
+          }
+        else
+          log "[$bead_id] auto-commit: no changes to commit"
+        fi
+      fi
+    fi
   done
 
   local elapsed=$(( $(date +%s) - start ))
   log "finished after $iter beads in ${elapsed}s"
+
+  # Log worktree info if used
+  if [[ -n "$worktree_dir" ]]; then
+    log "worktree branch: ralph-loop/${epic_id}"
+    log "worktree path: $worktree_dir"
+    log "to merge: git merge ralph-loop/${epic_id}"
+  fi
 }
 
 # --- Argument parsing ---

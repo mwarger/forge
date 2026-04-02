@@ -178,12 +178,185 @@ test_local() {
   "$ROOT_DIR/scripts/test-local.sh"
 }
 
+init_cmd() {
+  # Ensure we're in a git repo
+  git rev-parse --git-dir >/dev/null 2>&1 || fail "not a git repository"
+
+  local config_dir=".forge"
+  local config_file="$config_dir/config.json"
+  local git_hooks_dir
+  git_hooks_dir="$(git rev-parse --git-dir)/hooks"
+
+  mkdir -p "$config_dir"
+
+  log "detecting project type..."
+
+  # Detect project type and suggest commands
+  local commands=()
+
+  if [[ -f "package.json" ]]; then
+    log "found package.json (Node.js project)"
+
+    # Check for lint script
+    if jq -e '.scripts.lint' package.json >/dev/null 2>&1; then
+      local lint_cmd
+      lint_cmd=$(jq -r '.scripts.lint' package.json)
+      log "  lint script found: $lint_cmd"
+      printf '  Use "npm run lint" for linting? [Y/n] '
+      read -r answer
+      if [[ "${answer:-Y}" =~ ^[Yy]?$ ]]; then
+        commands+=("{\"name\":\"lint\",\"command\":\"npm run lint\",\"required\":true}")
+      fi
+    fi
+
+    # Check for TypeScript
+    if [[ -f "tsconfig.json" ]]; then
+      log "  tsconfig.json found"
+      printf '  Use "npx tsc --noEmit" for type checking? [Y/n] '
+      read -r answer
+      if [[ "${answer:-Y}" =~ ^[Yy]?$ ]]; then
+        commands+=("{\"name\":\"typecheck\",\"command\":\"npx tsc --noEmit\",\"required\":true}")
+      fi
+    fi
+
+    # Check for test script
+    if jq -e '.scripts.test' package.json >/dev/null 2>&1; then
+      log "  test script found"
+      printf '  Use "npm test" for testing? (optional — won'\''t block commits) [Y/n] '
+      read -r answer
+      if [[ "${answer:-Y}" =~ ^[Yy]?$ ]]; then
+        commands+=("{\"name\":\"test\",\"command\":\"npm test\",\"required\":false}")
+      fi
+    fi
+  fi
+
+  if [[ -f "pyproject.toml" ]] || [[ -f "setup.py" ]]; then
+    log "found Python project"
+    if command -v ruff >/dev/null 2>&1; then
+      printf '  Use "ruff check ." for linting? [Y/n] '
+      read -r answer
+      if [[ "${answer:-Y}" =~ ^[Yy]?$ ]]; then
+        commands+=("{\"name\":\"lint\",\"command\":\"ruff check .\",\"required\":true}")
+      fi
+    fi
+    if command -v mypy >/dev/null 2>&1; then
+      printf '  Use "mypy ." for type checking? [Y/n] '
+      read -r answer
+      if [[ "${answer:-Y}" =~ ^[Yy]?$ ]]; then
+        commands+=("{\"name\":\"typecheck\",\"command\":\"mypy .\",\"required\":true}")
+      fi
+    fi
+  fi
+
+  if [[ -f "Cargo.toml" ]]; then
+    log "found Cargo.toml (Rust project)"
+    printf '  Use "cargo clippy" for linting? [Y/n] '
+    read -r answer
+    if [[ "${answer:-Y}" =~ ^[Yy]?$ ]]; then
+      commands+=("{\"name\":\"lint\",\"command\":\"cargo clippy\",\"required\":true}")
+    fi
+    printf '  Use "cargo check" for type checking? [Y/n] '
+    read -r answer
+    if [[ "${answer:-Y}" =~ ^[Yy]?$ ]]; then
+      commands+=("{\"name\":\"typecheck\",\"command\":\"cargo check\",\"required\":true}")
+    fi
+  fi
+
+  if [[ -f "mix.exs" ]]; then
+    log "found mix.exs (Elixir project)"
+    printf '  Use "mix credo" for linting? [Y/n] '
+    read -r answer
+    if [[ "${answer:-Y}" =~ ^[Yy]?$ ]]; then
+      commands+=("{\"name\":\"lint\",\"command\":\"mix credo\",\"required\":true}")
+    fi
+    printf '  Use "mix dialyzer" for type checking? [Y/n] '
+    read -r answer
+    if [[ "${answer:-Y}" =~ ^[Yy]?$ ]]; then
+      commands+=("{\"name\":\"typecheck\",\"command\":\"mix dialyzer\",\"required\":true}")
+    fi
+  fi
+
+  # Allow custom commands
+  while true; do
+    printf '  Add a custom validation command? [y/N] '
+    read -r answer
+    if [[ ! "${answer:-N}" =~ ^[Yy]$ ]]; then
+      break
+    fi
+    printf '    Name (e.g. "format"): '
+    read -r cmd_name
+    printf '    Command: '
+    read -r cmd_command
+    printf '    Required (blocks commit)? [Y/n] '
+    read -r cmd_required
+    local req="true"
+    [[ "${cmd_required:-Y}" =~ ^[Nn]$ ]] && req="false"
+    commands+=("{\"name\":\"$cmd_name\",\"command\":\"$cmd_command\",\"required\":$req}")
+  done
+
+  # Build JSON array of commands
+  local commands_json="[]"
+  if [[ ${#commands[@]} -gt 0 ]]; then
+    commands_json=$(printf '%s\n' "${commands[@]}" | jq -s '.')
+  fi
+
+  # Ask about auto-commit model
+  local commit_model="claude-haiku-4-5-20251001"
+  printf '  Commit agent model [%s]: ' "$commit_model"
+  read -r answer
+  [[ -n "$answer" ]] && commit_model="$answer"
+
+  # Write config
+  jq -n \
+    --argjson commands "$commands_json" \
+    --arg model "$commit_model" \
+    '{
+      validation: { commands: $commands },
+      auto_commit: {
+        model: $model,
+        skip_roles: ["arbiter-script", "judge"]
+      }
+    }' > "$config_file"
+
+  log "wrote $config_file"
+
+  # Install pre-commit hook
+  if [[ -f "$git_hooks_dir/pre-commit" ]]; then
+    log "existing pre-commit hook found at $git_hooks_dir/pre-commit"
+    printf '  Overwrite? [y/N] '
+    read -r answer
+    if [[ ! "${answer:-N}" =~ ^[Yy]$ ]]; then
+      log "skipped pre-commit hook install"
+      log "init complete"
+      return
+    fi
+  fi
+
+  cp "$ROOT_DIR/hooks/forge-pre-commit.sh" "$git_hooks_dir/pre-commit"
+  chmod +x "$git_hooks_dir/pre-commit"
+  log "installed pre-commit hook at $git_hooks_dir/pre-commit"
+
+  # Vendor ralph-loop into the project
+  local bin_dir=".forge/bin"
+  mkdir -p "$bin_dir"
+  cp "$ROOT_DIR/bin/ralph-loop" "$bin_dir/ralph-loop"
+  chmod +x "$bin_dir/ralph-loop"
+  log "vendored ralph-loop to $bin_dir/ralph-loop"
+
+  log "init complete"
+  log ""
+  log "usage:"
+  log "  .forge/bin/ralph-loop <epic-id> --auto-commit    # commit after each bead"
+  log "  .forge/bin/ralph-loop <epic-id> --worktree       # run in isolated worktree"
+}
+
 help_cmd() {
   cat <<EOF
 Usage: $CLI_NAME <command>
 
 Commands:
   help
+  init               Set up .forge/config.json and pre-commit hook
   where
   list-skills
   install-skills
@@ -208,6 +381,7 @@ main() {
 
   case "$cmd" in
     help) help_cmd ;;
+    init) init_cmd ;;
     where) where_cmd ;;
     list-skills) list_skills ;;
     install-skills) install_skills ;;

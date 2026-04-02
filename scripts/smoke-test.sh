@@ -37,6 +37,7 @@ done
 log "checking hooks"
 require_file "$ROOT_DIR/hooks/hooks.json"
 require_file "$ROOT_DIR/hooks/forge-orchestrator-stop.sh"
+require_file "$ROOT_DIR/hooks/forge-pre-commit.sh"
 
 log "checking autoresearch-loop references"
 require_file "$ROOT_DIR/skills/autoresearch-loop/references/arbiter.sh"

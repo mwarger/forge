@@ -1,7 +1,7 @@
 {
   "name": "forge",
   "description": "Evidence-to-artifact pipeline with autonomous improvement loops: spec intake, adaptive clarification, adversarial review, self-replicating autoresearch cycles (doer/judge/arbiter/strategist), and canonical readiness gates",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "hooks": "./hooks/hooks.json",
   "author": {
     "name": "Mat Warger"
