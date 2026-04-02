@@ -1,13 +1,17 @@
 {
-  "Stop": [
-    {
-      "hooks": [
-        {
-          "type": "command",
-          "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/forge-orchestrator-stop.sh\"",
-          "timeout": 10000
-        }
-      ]
-    }
-  ]
+  "description": "Forge orchestrator stop hook — blocks premature stops during auto-transition phases",
+  "hooks": {
+    "Stop": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash ${CLAUDE_PLUGIN_ROOT}/hooks/forge-orchestrator-stop.sh",
+            "timeout": 10000
+          }
+        ]
+      }
+    ]
+  }
 }
