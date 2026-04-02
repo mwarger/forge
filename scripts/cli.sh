@@ -135,7 +135,7 @@ uninstall_skills() {
   if [[ -f "$manifest" ]]; then
     local skill
     for skill in "${SKILL_NAMES[@]}"; do
-      rm -rf "$target_dir/$skill"
+      rm -rf "${target_dir:?}/$skill"
     done
     rm -f "$manifest"
     log "removed managed skills from $target_dir"

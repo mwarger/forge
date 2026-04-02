@@ -17,8 +17,6 @@ if [[ "$has_commands" -eq 0 ]]; then
   exit 0
 fi
 
-failed=false
-
 jq -c '.validation.commands[]' "$CONFIG" | while IFS= read -r entry; do
   name=$(echo "$entry" | jq -r '.name')
   command=$(echo "$entry" | jq -r '.command')

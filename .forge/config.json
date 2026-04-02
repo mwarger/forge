@@ -1,0 +1,15 @@
+{
+  "validation": {
+    "commands": [
+      {
+        "name": "shellcheck",
+        "command": "shellcheck bin/* hooks/*.sh scripts/*.sh",
+        "required": true
+      }
+    ]
+  },
+  "auto_commit": {
+    "model": "claude-haiku-4-5-20251001",
+    "skip_roles": ["arbiter-script", "judge"]
+  }
+}

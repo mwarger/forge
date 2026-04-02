@@ -38,6 +38,7 @@ fi
 
 PHASE=$(jq -r '.current_phase // ""' "$LATEST_STATE")
 PLANNING_STATUS=$(jq -r '.planning_status // ""' "$LATEST_STATE")
+# shellcheck disable=SC2034 # used in future phase checks
 HANDOFF_STATUS=$(jq -r '.handoff_status // ""' "$LATEST_STATE")
 ADVERSARIAL_STATUS=$(jq -r '.adversarial_status // ""' "$LATEST_STATE")
 BLOCKER_COUNT=$(jq -r '.blocker_reasons | length // 0' "$LATEST_STATE")

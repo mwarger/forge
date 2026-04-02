@@ -279,6 +279,7 @@ run_loop() {
       role:arbiter-script)
         # Mechanical arbiter — extract bash from description and run it
         local script
+        # shellcheck disable=SC2016
         script=$(echo "$bead_desc" | sed -n '/^```bash/,/^```$/p' | sed '1d;$d')
         if [[ -z "$script" ]]; then
           log "[$bead_id] ERROR: arbiter-script bead has no bash block"
